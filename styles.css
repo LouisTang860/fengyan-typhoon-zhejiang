@@ -28,6 +28,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -233,6 +237,11 @@ svg {
   box-shadow: 0 0 0 4px rgba(86, 221, 190, 0.08), 0 0 13px rgba(86, 221, 190, 0.7);
 }
 
+.status-light.is-stale {
+  background: var(--orange);
+  box-shadow: 0 0 0 4px rgba(255, 180, 93, 0.08), 0 0 13px rgba(255, 180, 93, 0.65);
+}
+
 .refresh-button {
   display: inline-flex;
   align-items: center;
@@ -290,6 +299,28 @@ svg {
 .page-shell {
   width: min(1500px, calc(100% - 64px));
   margin: 0 auto;
+}
+
+.data-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 13px 16px;
+  border: 1px solid rgba(255, 122, 85, 0.28);
+  border-radius: 11px;
+  background: rgba(255, 122, 85, 0.08);
+  color: #ffc2b2;
+  font-size: 11px;
+}
+
+.data-error strong {
+  flex: 0 0 auto;
+  color: #ff9d83;
+}
+
+.data-error span {
+  color: #ba8b80;
 }
 
 .hero {
@@ -428,6 +459,24 @@ svg {
   font-family: var(--font-mono);
   font-size: 8px;
   letter-spacing: 0.12em;
+}
+
+.storm-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.storm-switcher select {
+  max-width: 180px;
+  padding: 5px 24px 5px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #0a1e30;
+  color: var(--text-soft);
+  font: inherit;
 }
 
 .storm-visual {
@@ -829,6 +878,13 @@ svg {
   fill: #3c5d70;
   font-size: 11px;
   letter-spacing: 0.3em;
+}
+
+.map-loading {
+  fill: #6d8fa2;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.1em;
 }
 
 .history-line {
@@ -1236,6 +1292,30 @@ svg {
     rgba(20, 31, 42, 0.45);
 }
 
+.alert-overview.is-clear {
+  border-color: rgba(86, 221, 190, 0.2);
+  background:
+    linear-gradient(110deg, rgba(86, 221, 190, 0.09), rgba(105, 232, 255, 0.015)),
+    rgba(20, 31, 42, 0.45);
+}
+
+.alert-overview.is-clear .alert-symbol {
+  background: rgba(86, 221, 190, 0.1);
+}
+
+.alert-overview.is-clear .alert-symbol svg {
+  fill: rgba(86, 221, 190, 0.08);
+  stroke: var(--mint);
+}
+
+.alert-overview.is-clear span {
+  color: #7fa99c;
+}
+
+.alert-overview.is-clear strong {
+  color: #9fe9d5;
+}
+
 .alert-symbol {
   display: grid;
   width: 38px;
@@ -1554,6 +1634,10 @@ svg {
   color: var(--orange);
 }
 
+.status-row .live-text {
+  color: var(--mint);
+}
+
 .site-footer {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr) auto;
@@ -1796,7 +1880,7 @@ svg {
 
   .demo-banner::after {
     color: #f6d2a3;
-    content: "演示数据";
+    content: "官方数据";
   }
 
   .header-actions {
@@ -1830,6 +1914,14 @@ svg {
 
   .hero-meta {
     gap: 9px 14px;
+  }
+
+  .storm-switcher {
+    flex-basis: 100%;
+  }
+
+  .storm-switcher select {
+    max-width: calc(100vw - 120px);
   }
 
   .storm-visual {

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="台风实况网站演示页面，包含台风位置、移动方向、强度、路径示意图和预警信息。所有内容均为演示数据。"
+      content="风眼台风实况网站，展示浙江省台风路径实时发布系统的台风位置、移动方向、强度、风力和官方事件记录。"
     />
     <meta name="theme-color" content="#06111f" />
-    <title>风眼 · 台风实况演示</title>
+    <title>风眼 · 浙江台风路径</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script src="app.js" defer></script>
@@ -27,21 +27,21 @@
         </svg>
         <span class="brand-copy">
           <strong>风眼</strong>
-          <small>TYPHOON WATCH</small>
+          <small>ZHEJIANG TYPHOON WATCH</small>
         </span>
       </a>
 
-      <div class="demo-banner" role="note">
-        <span class="demo-banner-icon" aria-hidden="true">!</span>
-        <span><strong>演示模式</strong> · 页面内所有台风与预警信息均为虚构</span>
+      <div class="demo-banner source-banner" id="data-banner" role="status">
+        <span class="demo-banner-icon" aria-hidden="true">浙</span>
+        <span><strong id="data-banner-title">官方数据源</strong> · <span id="data-banner-text">正在连接浙江省台风路径实时发布系统</span></span>
       </div>
 
       <div class="header-actions">
         <div class="sync-status">
-          <span class="status-light" aria-hidden="true"></span>
-          <span>最后同步</span>
-          <time id="last-sync-time" datetime="2026-11-05T14:30:00+08:00">14:30</time>
-          <span class="timezone">CST</span>
+          <span class="status-light" id="sync-status-light" aria-hidden="true"></span>
+          <span id="sync-status-label">最后同步</span>
+          <time id="last-sync-time" datetime="">--:--</time>
+          <span class="timezone">CST · 15 MIN</span>
         </div>
         <button class="refresh-button" id="refresh-button" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -54,19 +54,24 @@
     </header>
 
     <main id="main-content" class="page-shell">
+      <div class="data-error" id="data-error" role="alert" hidden>
+        <strong>官方数据暂时无法加载</strong>
+        <span>当前页面保留基础框架，请稍后刷新或前往官方系统查看。</span>
+      </div>
+
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
           <div class="eyebrow">
             <span class="live-indicator" aria-hidden="true"></span>
-            演示台风 · 实况观测
+            浙江省水利厅 · 官方路径数据
           </div>
           <div class="title-line">
-            <h1 id="page-title">示例台风</h1>
-            <span class="storm-number">DEMO<br />01</span>
+            <h1 id="page-title">正在读取</h1>
+            <span class="storm-number" id="storm-number">ZJ<br />--</span>
           </div>
-          <p class="storm-name-en">DEMO STORM</p>
-          <p class="hero-description">
-            当前位于西北太平洋，正以西北偏北方向移动。此页面使用虚构样本展示实况信息与预警界面。
+          <p class="storm-name-en" id="storm-name-en">OFFICIAL FEED</p>
+          <p class="hero-description" id="storm-description">
+            正在从浙江省台风路径实时发布系统读取最新记录，请稍候。
           </p>
           <div class="hero-meta">
             <span>
@@ -74,16 +79,20 @@
                 <path d="M10 18s6-5.2 6-10A6 6 0 1 0 4 8c0 4.8 6 10 6 10Z" />
                 <circle cx="10" cy="8" r="2" />
               </svg>
-              西北太平洋
+              <span id="hero-location">正在定位</span>
             </span>
             <span>
               <svg viewBox="0 0 20 20" aria-hidden="true">
                 <circle cx="10" cy="10" r="7" />
                 <path d="M10 5v5l3 2" />
               </svg>
-              观测于 11 月 05 日 14:00
+              <span id="hero-observed">等待观测时间</span>
             </span>
-            <span class="hero-demo-chip">DEMO DATA</span>
+            <span class="hero-demo-chip" id="data-state-chip">SYNCING</span>
+            <label class="storm-switcher" id="storm-picker-wrap" hidden>
+              切换台风
+              <select id="storm-picker"></select>
+            </label>
           </div>
         </div>
 
@@ -108,7 +117,7 @@
               d="M111 199c-38 0-65-15-72-37 12 16 37 21 59 8 25-15 31-48 13-70 7 31-11 53-37 59-28 7-51-10-56-33-5 40 17 59 42 69 18 7 33 8 51 4Z"
             />
           </svg>
-          <span class="storm-vector">西北偏北 · 18 km/h</span>
+          <span class="storm-vector" id="storm-vector">读取官方路径</span>
         </div>
       </section>
 
@@ -120,7 +129,7 @@
           </div>
           <div class="data-provenance">
             <span class="provenance-dot" aria-hidden="true"></span>
-            演示数据 · 非气象机构发布
+            <span id="data-mode-note">浙江省官方数据 · 自动同步</span>
           </div>
         </div>
 
@@ -133,9 +142,9 @@
               </svg>
             </div>
             <span class="card-label">当前位置</span>
-            <strong>西北太平洋</strong>
-            <p>冲绳岛东南约 640 公里</p>
-            <div class="coordinate">21.4°N · 128.6°E</div>
+            <strong id="metric-location-primary">正在定位</strong>
+            <p id="metric-location-secondary">读取官方经纬度</p>
+            <div class="coordinate" id="metric-coordinate">--° · --°E</div>
           </article>
 
           <article class="summary-card">
@@ -145,9 +154,9 @@
               </svg>
             </div>
             <span class="card-label">移动方向</span>
-            <strong>西北偏北</strong>
-            <p>稳定移动</p>
-            <div class="measurement">18 <small>km/h</small></div>
+            <strong id="metric-direction">读取中</strong>
+            <p id="metric-direction-note">官方移动方向</p>
+            <div class="measurement"><span id="metric-move-speed">--</span> <small>km/h</small></div>
           </article>
 
           <article class="summary-card intensity-card">
@@ -157,9 +166,9 @@
               </svg>
             </div>
             <span class="card-label">台风等级</span>
-            <strong class="intensity-value">强台风级</strong>
-            <p>高影响强度</p>
-            <div class="intensity-track" aria-hidden="true"><span></span></div>
+            <strong class="intensity-value" id="metric-grade">读取中</strong>
+            <p id="metric-grade-note">数据源发布的等级</p>
+            <div class="intensity-track" aria-hidden="true"><span id="intensity-bar"></span></div>
           </article>
 
           <article class="summary-card wind-card">
@@ -169,9 +178,9 @@
               </svg>
             </div>
             <span class="card-label">最大风速</span>
-            <strong>48 <small>m/s</small></strong>
-            <p>中心附近最大风力</p>
-            <div class="meter" aria-hidden="true"><span style="--fill: 78%"></span></div>
+            <strong><span id="metric-wind">--</span> <small>m/s</small></strong>
+            <p>中心附近最大风速</p>
+            <div class="meter" aria-hidden="true"><span id="wind-meter"></span></div>
           </article>
 
           <article class="summary-card">
@@ -181,9 +190,9 @@
               </svg>
             </div>
             <span class="card-label">风力与气压</span>
-            <strong>15 <small>级</small></strong>
-            <p>阵风 17 级 · 58 m/s</p>
-            <div class="pressure">中心气压 <b>940 hPa</b></div>
+            <strong><span id="metric-force">--</span> <small>级</small></strong>
+            <p id="metric-force-note">数据源风力等级</p>
+            <div class="pressure">中心气压 <b id="metric-pressure">-- hPa</b></div>
           </article>
         </div>
       </section>
@@ -193,11 +202,11 @@
           <div class="panel-header">
             <div>
               <span class="section-kicker">TRACK OVERVIEW</span>
-              <h2 id="track-heading">路径示意</h2>
+              <h2 id="track-heading">台风路径</h2>
             </div>
             <div class="panel-header-meta">
-              <span class="demo-label">仅演示</span>
-              <span>过去 26 小时 · 未来 48 小时示意</span>
+              <span class="demo-label">官方</span>
+              <span id="track-window">等待官方路径数据</span>
             </div>
           </div>
 
@@ -210,10 +219,8 @@
               role="group"
               aria-labelledby="map-title map-description"
             >
-              <title id="map-title">示例台风路径示意图</title>
-              <desc id="map-description">
-                示例台风由菲律宾以东海域向北偏西移动，经过冲绳岛东南侧，未来路径转向日本以南海域。所有位置均为演示数据。
-              </desc>
+              <title id="map-title">浙江省官方台风路径</title>
+              <desc id="map-description">正在读取浙江省台风路径实时发布系统的路径数据。</desc>
               <defs>
                 <linearGradient id="oceanGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stop-color="#0a2033" />
@@ -275,163 +282,27 @@
                   <text x="144" y="415" class="sea-label">南 海</text>
                 </g>
 
-                <circle cx="534" cy="271" r="94" fill="url(#warningRadius)" aria-hidden="true" />
-
-                <g class="track-history" aria-label="已发生路径">
-                  <path
-                    class="history-line"
-                    pathLength="1"
-                    d="M386 345 L415 330 L447 314 L476 297 L505 282 L534 271"
-                  />
-                  <g
-                    class="track-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月04日 12:00"
-                    data-grade="热带风暴级"
-                    data-wind="23 m/s"
-                    data-coord="17.4°N · 124.0°E"
-                    aria-label="11月4日12时，热带风暴级，最大风速23米每秒"
-                  >
-                    <circle class="point-halo" cx="386" cy="345" r="10" />
-                    <circle class="point-dot" cx="386" cy="345" r="4.5" />
-                  </g>
-                  <g
-                    class="track-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月04日 18:00"
-                    data-grade="强热带风暴级"
-                    data-wind="30 m/s"
-                    data-coord="18.2°N · 124.9°E"
-                    aria-label="11月4日18时，强热带风暴级，最大风速30米每秒"
-                  >
-                    <circle class="point-halo" cx="415" cy="330" r="10" />
-                    <circle class="point-dot" cx="415" cy="330" r="4.5" />
-                  </g>
-                  <g
-                    class="track-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月05日 00:00"
-                    data-grade="台风级"
-                    data-wind="35 m/s"
-                    data-coord="19.1°N · 125.9°E"
-                    aria-label="11月5日0时，台风级，最大风速35米每秒"
-                  >
-                    <circle class="point-halo" cx="447" cy="314" r="10" />
-                    <circle class="point-dot" cx="447" cy="314" r="4.5" />
-                  </g>
-                  <g
-                    class="track-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月05日 06:00"
-                    data-grade="强台风级"
-                    data-wind="42 m/s"
-                    data-coord="20.0°N · 126.8°E"
-                    aria-label="11月5日6时，强台风级，最大风速42米每秒"
-                  >
-                    <circle class="point-halo" cx="476" cy="297" r="10" />
-                    <circle class="point-dot" cx="476" cy="297" r="4.5" />
-                  </g>
-                  <g
-                    class="track-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月05日 12:00"
-                    data-grade="强台风级"
-                    data-wind="47 m/s"
-                    data-coord="20.8°N · 127.7°E"
-                    aria-label="11月5日12时，强台风级，最大风速47米每秒"
-                  >
-                    <circle class="point-halo" cx="505" cy="282" r="10" />
-                    <circle class="point-dot" cx="505" cy="282" r="4.5" />
-                  </g>
-                </g>
-
-                <g class="forecast-track" aria-label="未来路径示意">
-                  <path
-                    class="forecast-line"
-                    d="M534 271 C553 260 570 250 590 235 C614 217 639 197 666 177"
-                    marker-end="url(#routeArrow)"
-                  />
-                  <g
-                    class="forecast-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月05日 20:00"
-                    data-grade="强台风级"
-                    data-wind="46 m/s"
-                    data-coord="22.1°N · 129.4°E"
-                    aria-label="未来示意，11月5日20时，强台风级"
-                  >
-                    <circle cx="566" cy="250" r="5" />
-                    <text x="574" y="244">20:00</text>
-                  </g>
-                  <g
-                    class="forecast-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月06日 08:00"
-                    data-grade="台风级"
-                    data-wind="38 m/s"
-                    data-coord="23.8°N · 130.5°E"
-                    aria-label="未来示意，11月6日8时，台风级"
-                  >
-                    <circle cx="600" cy="228" r="5" />
-                    <text x="609" y="222">06日 08:00</text>
-                  </g>
-                  <g
-                    class="forecast-point"
-                    tabindex="0"
-                    role="button"
-                    data-time="11月07日 14:00"
-                    data-grade="强热带风暴级"
-                    data-wind="28 m/s"
-                    data-coord="26.2°N · 132.3°E"
-                    aria-label="未来示意，11月7日14时，强热带风暴级"
-                  >
-                    <circle cx="666" cy="177" r="5" />
-                    <text x="674" y="171">07日 14:00</text>
-                  </g>
-                </g>
-
-                <g class="current-storm" transform="translate(534 271)" filter="url(#markerShadow)" aria-hidden="true">
-                  <circle class="current-pulse" r="26" />
-                  <circle class="current-ring" r="18" />
-                  <circle class="current-core" r="10" />
-                  <circle class="current-eye" r="3.5" />
-                </g>
-                <g
-                  class="current-hit-area track-point"
-                  tabindex="0"
-                  role="button"
-                  transform="translate(534 271)"
-                  data-time="11月05日 14:00 · 当前"
-                  data-grade="强台风级"
-                  data-wind="48 m/s"
-                  data-coord="21.4°N · 128.6°E"
-                  aria-label="当前台风中心，11月5日14时，强台风级，最大风速48米每秒"
-                >
-                  <circle class="current-focus-ring" r="25" />
-                  <circle r="30" fill="transparent" />
+                <g id="dynamic-warning-radius"></g>
+                <g id="dynamic-track-layer" aria-label="官方台风路径">
+                  <text x="450" y="260" text-anchor="middle" class="map-loading">正在读取官方路径…</text>
                 </g>
 
                 <g class="coordinate-ticks" aria-hidden="true">
-                  <text x="31" y="34">30°N</text>
-                  <text x="31" y="199">20°N</text>
-                  <text x="31" y="364">10°N</text>
-                  <text x="87" y="499">115°E</text>
-                  <text x="359" y="499">125°E</text>
-                  <text x="631" y="499">135°E</text>
+                  <text x="31" y="32">35°N</text>
+                  <text x="31" y="157">30°N</text>
+                  <text x="31" y="282">25°N</text>
+                  <text x="31" y="407">20°N</text>
+                  <text x="100" y="499">115°E</text>
+                  <text x="373" y="499">125°E</text>
+                  <text x="646" y="499">135°E</text>
+                  <text x="873" y="499" text-anchor="end">145°E</text>
                 </g>
               </g>
             </svg>
 
             <div class="map-badge" aria-hidden="true">
               <span class="map-badge-dot"></span>
-              示意地图 · 非导航用途
+              官方路径 · 示意底图
             </div>
 
             <div class="zoom-controls" aria-label="地图缩放控制">
@@ -443,79 +314,35 @@
             <div id="map-tooltip" class="map-tooltip" role="status" aria-live="polite" hidden></div>
 
             <div class="map-legend" aria-label="路径图例">
-              <span><i class="legend-line history"></i>已发生路径</span>
-              <span><i class="legend-line forecast"></i>未来示意</span>
-              <span><i class="legend-point"></i>当前中心</span>
+              <span><i class="legend-line history"></i>官方实况</span>
+              <span><i class="legend-line forecast"></i>中国预报</span>
+              <span><i class="legend-point"></i>最新位置</span>
             </div>
           </div>
 
           <div class="track-summary">
             <div class="track-fact">
-              <span>过去 26 小时</span>
-              <strong>向西北偏北移动</strong>
+              <span>官方路径范围</span>
+              <strong id="track-span">等待数据</strong>
             </div>
             <div class="track-fact">
-              <span>24 小时示意路径</span>
-              <strong>朝冲绳岛链靠近</strong>
+              <span>当前移动</span>
+              <strong id="track-direction">等待数据</strong>
             </div>
             <div class="track-fact">
-              <span>预计强度</span>
-              <strong>随后逐渐减弱</strong>
+              <span>中国预报</span>
+              <strong id="track-forecast">等待数据</strong>
             </div>
           </div>
           <p class="map-note">
             <span aria-hidden="true">i</span>
-            点击路径节点可查看对应时次。路径仅用于界面演示，不可作为航行、避险或防灾判断依据。
+            路径与预报来自浙江省台风路径实时发布系统。底图为示意图，本页面不用于航行、避险或防灾判断。
           </p>
 
           <details class="track-details">
             <summary>查看文字版路径节点</summary>
-            <ol>
-              <li>
-                <time datetime="2026-11-04T12:00:00+08:00">11月04日 12:00</time>
-                <span>热带风暴级 · 23 m/s</span>
-                <span>17.4°N · 124.0°E</span>
-              </li>
-              <li>
-                <time datetime="2026-11-04T18:00:00+08:00">11月04日 18:00</time>
-                <span>强热带风暴级 · 30 m/s</span>
-                <span>18.2°N · 124.9°E</span>
-              </li>
-              <li>
-                <time datetime="2026-11-05T00:00:00+08:00">11月05日 00:00</time>
-                <span>台风级 · 35 m/s</span>
-                <span>19.1°N · 125.9°E</span>
-              </li>
-              <li>
-                <time datetime="2026-11-05T06:00:00+08:00">11月05日 06:00</time>
-                <span>强台风级 · 42 m/s</span>
-                <span>20.0°N · 126.8°E</span>
-              </li>
-              <li>
-                <time datetime="2026-11-05T12:00:00+08:00">11月05日 12:00</time>
-                <span>强台风级 · 47 m/s</span>
-                <span>20.8°N · 127.7°E</span>
-              </li>
-              <li class="current-node">
-                <time datetime="2026-11-05T14:00:00+08:00">11月05日 14:00 · 当前</time>
-                <span>强台风级 · 48 m/s</span>
-                <span>21.4°N · 128.6°E</span>
-              </li>
-              <li class="forecast-node">
-                <time datetime="2026-11-05T20:00:00+08:00">11月05日 20:00 · 未来示意</time>
-                <span>强台风级 · 46 m/s</span>
-                <span>22.1°N · 129.4°E</span>
-              </li>
-              <li class="forecast-node">
-                <time datetime="2026-11-06T08:00:00+08:00">11月06日 08:00 · 未来示意</time>
-                <span>台风级 · 38 m/s</span>
-                <span>23.8°N · 130.5°E</span>
-              </li>
-              <li class="forecast-node">
-                <time datetime="2026-11-07T14:00:00+08:00">11月07日 14:00 · 未来示意</time>
-                <span>强热带风暴级 · 28 m/s</span>
-                <span>26.2°N · 132.3°E</span>
-              </li>
+            <ol id="track-node-list">
+              <li class="loading-node">正在读取官方路径节点…</li>
             </ol>
           </details>
         </section>
@@ -523,13 +350,13 @@
         <aside class="panel warning-panel" aria-labelledby="warning-heading">
           <div class="panel-header warning-heading-row">
             <div>
-              <span class="section-kicker">ADVISORY CENTER</span>
-              <h2 id="warning-heading">预警信息</h2>
+              <span class="section-kicker">OFFICIAL EVENTS</span>
+              <h2 id="warning-heading">预警与事件</h2>
             </div>
-            <span class="alert-count">3 条演示</span>
+            <span class="alert-count" id="alert-count">同步中</span>
           </div>
 
-          <div class="alert-overview">
+          <div class="alert-overview" id="alert-overview">
             <div class="alert-symbol" aria-hidden="true">
               <svg viewBox="0 0 40 40">
                 <path d="M20 5 37 34H3L20 5Z" />
@@ -537,66 +364,18 @@
               </svg>
             </div>
             <div>
-              <span>当前演示预警级别</span>
-              <strong>橙色 · 严重</strong>
+              <span id="alert-state-label">官方状态</span>
+              <strong id="alert-state-value">正在同步</strong>
             </div>
           </div>
 
-          <div class="alert-list">
-            <article class="alert-item alert-orange">
-              <div class="alert-level" aria-hidden="true">橙</div>
-              <div class="alert-content">
-                <div class="alert-meta">
-                  <span>台风预警</span>
-                  <time datetime="2026-11-05T14:10:00+08:00">14:10 发布</time>
-                </div>
-                <h3>台风橙色预警（演示）</h3>
-                <p>示例台风中心经过时，相关海域阵风可达 17 级。</p>
-                <div class="alert-area">
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M10 18s6-5.2 6-10A6 6 0 1 0 4 8c0 4.8 6 10 6 10Z" />
-                    <circle cx="10" cy="8" r="2" />
-                  </svg>
-                  冲绳岛链 · 东海东南部
-                </div>
-              </div>
-            </article>
-
-            <article class="alert-item alert-yellow">
-              <div class="alert-level" aria-hidden="true">黄</div>
-              <div class="alert-content">
-                <div class="alert-meta">
-                  <span>大风预警</span>
-                  <time datetime="2026-11-05T13:45:00+08:00">13:45 发布</time>
-                </div>
-                <h3>大风黄色预警（演示）</h3>
-                <p>未来 24 小时，附近海域风力将维持 10 至 12 级。</p>
-                <div class="alert-area">
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M10 18s6-5.2 6-10A6 6 0 1 0 4 8c0 4.8 6 10 6 10Z" />
-                    <circle cx="10" cy="8" r="2" />
-                  </svg>
-                  西北太平洋 · 琉球群岛周边
-                </div>
-              </div>
-            </article>
-
+          <div class="alert-list" id="alert-list" aria-live="polite">
             <article class="alert-item alert-blue">
-              <div class="alert-level" aria-hidden="true">蓝</div>
+              <div class="alert-level" aria-hidden="true">源</div>
               <div class="alert-content">
-                <div class="alert-meta">
-                  <span>海浪预警</span>
-                  <time datetime="2026-11-05T13:20:00+08:00">13:20 发布</time>
-                </div>
-                <h3>海浪蓝色预警（演示）</h3>
-                <p>示例中心附近可能出现 7 至 9 米的灾害性海浪。</p>
-                <div class="alert-area">
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M10 18s6-5.2 6-10A6 6 0 1 0 4 8c0 4.8 6 10 6 10Z" />
-                    <circle cx="10" cy="8" r="2" />
-                  </svg>
-                  菲律宾海东北部
-                </div>
+                <div class="alert-meta"><span>官方数据</span><time>同步中</time></div>
+                <h3>正在读取事件记录</h3>
+                <p>页面不会自行生成或推断真实预警。</p>
               </div>
             </article>
           </div>
@@ -609,18 +388,18 @@
               </svg>
             </div>
             <div>
-              <strong>所有预警均为演示内容</strong>
-              <p>它们不来自气象机构，不构成任何真实预警。请以当地气象部门正式发布为准。</p>
+              <strong>预警信息以官方发布为准</strong>
+              <p>本页展示官方系统返回的台风状态与事件记录；独立气象预警请前往当地气象部门核实。</p>
             </div>
           </div>
 
           <a
             class="official-link"
-            href="https://www.cma.gov.cn/"
+            href="https://typhoon.slt.zj.gov.cn/"
             target="_blank"
             rel="noreferrer noopener"
           >
-            前往中国气象局官方渠道
+            查看浙江省台风路径实时发布系统
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="M7 4h9v9M16 4 5 15" />
             </svg>
@@ -632,28 +411,28 @@
         <article class="support-card trend-card">
           <div>
             <span class="section-kicker">WIND TREND</span>
-            <h2>近 24 小时风力变化</h2>
-            <p>示例台风中心附近最大风速持续上升。</p>
+            <h2>近期风力变化</h2>
+            <p id="trend-description">根据最近官方路径点自动计算</p>
           </div>
           <div class="trend">
             <div class="trend-value">
-              <strong>+10</strong>
+              <strong id="trend-delta">--</strong>
               <span>m/s</span>
             </div>
-              <svg viewBox="0 0 360 110" role="img" aria-label="风速趋势从每秒38米上升至每秒48米">
+            <svg viewBox="0 0 360 110" role="img" aria-label="近期最大风速变化" id="trend-chart">
               <defs>
                 <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stop-color="#66e9ff" stop-opacity=".28" />
                   <stop offset="1" stop-color="#66e9ff" stop-opacity="0" />
                 </linearGradient>
               </defs>
-              <path class="trend-area" d="M8 84 70 74 132 61 194 48 256 39 352 17V110H8Z" />
-              <path class="trend-line" d="M8 84 70 74 132 61 194 48 256 39 352 17" />
-              <circle cx="352" cy="17" r="5" />
+              <path class="trend-area" id="trend-area" d="" />
+              <path class="trend-line" id="trend-line" d="" />
+              <circle id="trend-endpoint" cx="352" cy="17" r="5" />
               <g class="trend-labels">
-                <text x="5" y="106">昨日 14:00</text>
-                <text x="155" y="106">今日 02:00</text>
-                <text x="297" y="106">14:00</text>
+                <text id="trend-label-start" x="5" y="106">暂无</text>
+                <text id="trend-label-middle" x="155" y="106">暂无</text>
+                <text id="trend-label-end" x="310" y="106">暂无</text>
               </g>
             </svg>
           </div>
@@ -664,19 +443,23 @@
           <h2>数据状态</h2>
           <div class="status-row">
             <span>数据性质</span>
-            <strong class="demo-text">虚构演示数据</strong>
+            <strong class="live-text" id="status-data-nature">浙江省官方公开数据</strong>
           </div>
           <div class="status-row">
             <span>观测时间</span>
-            <strong>2026-11-05 14:00 CST</strong>
+            <strong id="status-observed">正在读取</strong>
           </div>
           <div class="status-row">
-            <span>页面同步</span>
-            <strong>2026-11-05 14:30 CST</strong>
+            <span>最近同步</span>
+            <strong id="status-synced">正在读取</strong>
           </div>
           <div class="status-row">
-            <span>数据来源</span>
-            <strong>页面内置演示样本</strong>
+            <span>更新频率</span>
+            <strong>GitHub Actions · 每 15 分钟</strong>
+          </div>
+          <div class="status-row">
+            <span>发布机构</span>
+            <strong id="status-source">浙江省水利厅</strong>
           </div>
         </article>
       </section>
@@ -685,17 +468,17 @@
     <footer class="site-footer">
       <div class="footer-brand">
         <span>风眼</span>
-        <p>台风实况信息界面演示</p>
+        <p>浙江省台风路径实时信息聚合</p>
       </div>
       <p class="footer-warning">
-        本页面仅用于产品、视觉和交互演示，所有台风、路径、风力与预警数据均为虚构，不构成真实气象信息或防灾建议。
+        本页面数据来自浙江省台风路径实时发布系统公开接口，本站与发布机构无隶属关系。台风与预警信息请以官方最新发布为准。
       </p>
       <a href="#main-content">返回顶部 ↑</a>
     </footer>
 
     <div id="live-announcement" class="visually-hidden" aria-live="polite"></div>
     <noscript>
-      <div class="noscript-warning">本页面的地图交互和刷新演示需要启用 JavaScript，核心实况数据仍可阅读。</div>
+      <div class="noscript-warning">本页面需要 JavaScript 读取浙江省官方台风数据。</div>
     </noscript>
   </body>
 </html>
